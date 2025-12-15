@@ -1,20 +1,27 @@
 import { Request, Response } from 'express';
 import * as authService from '../auth/auth.service';
 import { authLoginValidationSchema, authRegisterValidationSchema } from './auth.validator';
-import { userInfo } from 'os';
+
 export const createUserHandler = async (req: Request, res: Response) => {
     try {
-        const validatedData = authRegisterValidationSchema.parse(req.body);
+        const validatedData = authRegisterValidationSchema.safeParse(req.body);
+        if (!validatedData.success) {
+            return res.status(400).json({
+                success: false,
+                message: validatedData.error.issues?.[0]?.message || "Invalid input",
+            });
+        }
         const user = await authService.createUser(validatedData);
         res.status(201).json({
             message: 'User created successfully',
-            user: user
+            user: user,
+            success: true
         })
 
     } catch (error: any) {
         res.status(400).json({
-            message: 'Error creating user',
-            error: error.message
+            error: error.message,
+            success: false
         });
     }
 
@@ -31,8 +38,8 @@ export const loginUserHandler = async (req: Request, res: Response) => {
         })
     } catch (error: any) {
         res.status(400).json({
-            message: "error logging in user",
-            error: error.message
-        })
+            success: false,
+            message: error.message || "Invalid login data",
+        });
     }
 }

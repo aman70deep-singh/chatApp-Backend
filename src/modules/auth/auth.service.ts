@@ -5,7 +5,7 @@ export async function createUser(userData: any) {
     try {
         const checkExistingUser = await UserModel.findOne({ email: userData.email });
         if (checkExistingUser) {
-            throw new Error('User with this email already exists');
+            throw new Error('Email already exists');
         }
         const hashedPassword = await bcrypt.hash(userData.password, 10);
         const newUser = await UserModel.create({
