@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+// Load environment variables FIRST before any other imports
+dotenv.config({ path: './.env' });
+
 import http from 'http';
 import app from './app';
 import { initSocket } from './socket/socket';

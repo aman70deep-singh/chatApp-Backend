@@ -16,7 +16,6 @@ export async function getUserProfile(userId: string) {
 
 export async function updateUserProfile(userId: string, data: any) {
     try {
-        console.log("userId ->>>", userId);
         const user = await UserModel.findByIdAndUpdate(userId, {
             $set: data
         },

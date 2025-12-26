@@ -16,6 +16,7 @@ const userSchema = new Schema<IUser>({
     password: {
         type: String,
         required: true,
+        select:false
     },
     email: {
         type: String,
@@ -23,10 +24,11 @@ const userSchema = new Schema<IUser>({
     },
     profilePic: {
         type: String,
-        required: false,
-    }
+        default:
+            "https://ui-avatars.com/api/?background=random&name=User",
+    },
 },
-    { timestamps: true },
+    {timestamps:true},
 
 )
 const user = model<IUser>("User", userSchema);
