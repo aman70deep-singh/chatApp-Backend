@@ -6,7 +6,7 @@ let io: Server;
 export const initSocket = (httpServer: any) => {
   io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: "http://localhost:3000",
       methods: ["GET", "POST"],
     },
   });
@@ -25,12 +25,12 @@ export const initSocket = (httpServer: any) => {
       console.log("User joined chat:", chatId);
     });
 
-    socket.on("typing", ({ chatId, userId }) => {
-      socket.to(chatId).emit("typing", userId);
+    socket.on("typing", (chatId) => {
+      socket.to(chatId).emit("typing");
     });
 
-    socket.on("stop-typing", ({ chatId, userId }) => {
-      socket.to(chatId).emit("stop-typing", userId);
+    socket.on("stop-typing", (chatId) => {
+      socket.to(chatId).emit("stop-typing");
     });
 
     socket.on("message-delivered", async (chatId) => {
@@ -50,10 +50,12 @@ export const initSocket = (httpServer: any) => {
 
     socket.on("send-message", (message) => {
       const chat = message.chatId;
-      if (!chat) return console.log("Chat not found in message event");
+      if (!chat) {
+        console.log(" Chat not found in message");
+        return;
+      }
 
       socket.to(chat._id).emit("receive-message", message);
-      console.log("Message sent in room:", chat);
     });
 
     socket.on("disconnect", () => {

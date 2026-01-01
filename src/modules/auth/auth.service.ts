@@ -14,28 +14,22 @@ export async function createUser(userData: any, file: any) {
 
   const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-  const profileUpload = await cloudinary.uploader.upload(
-    `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-    {
-      folder: "profile-pics",
-    }
-  );
-
   const newUser = await UserModel.create({
     name: userData.name,
     email: userData.email,
     password: hashedPassword,
-    profilePic: profileUpload.secure_url,
+    bio: userData.bio,
   });
 
   const { password, ...userWithoutPassword } = newUser.toObject();
   return userWithoutPassword;
 }
 
-
 export async function loginUser(userData: any) {
   try {
-    const isUserExist = await UserModel.findOne({ email: userData.email }).select("+password");
+    const isUserExist = await UserModel.findOne({
+      email: userData.email,
+    }).select("+password");
     if (!isUserExist) {
       throw new Error("User does not exist");
     }
@@ -94,26 +88,27 @@ export async function getRefreshToken(refreshToken: string) {
   }
 }
 
-export async function uploadUserProfilePicService(
-  userId: string,
-  file: any
-) {
-  const result = await cloudinary.uploader.upload(
-    `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-    {
-      folder: "profile-pics",
+export async function uploadUserProfilePicService(userId: string, file: any) {
+  try {
+    const result = await cloudinary.uploader.upload(
+      `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+      {
+        folder: "profile-pics",
+      }
+    );
+
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { profilePic: result.secure_url },
+      { new: true }
+    ).select("-password");
+
+    if (!user) {
+      throw new Error("User not found");
     }
-  );
 
-  const user = await UserModel.findByIdAndUpdate(
-    userId,
-    { profilePic: result.secure_url },
-    { new: true }
-  );
-
-  if (!user) {
-    throw new Error("User not found");
+    return user;
+  } catch (error) {
+    throw error;
   }
-
-  return user.profilePic;
 }

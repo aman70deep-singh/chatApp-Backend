@@ -1,5 +1,6 @@
 import chatModel from "../../models/chat.model";
 import messageModel from "../../models/message.model";
+import { getIO } from "../../socket/socket";
 export async function sendMessage(senderId: string, data: any) {
   let createdMessage = await messageModel.create({
     sender: senderId,
@@ -19,10 +20,12 @@ export async function sendMessage(senderId: string, data: any) {
     },
   });
 
-
   await chatModel.findByIdAndUpdate(data.chatId, {
     latestMessage: createdMessage._id,
   });
+  const io = getIO();
+  io.to(data.chatId).emit("message-received", createdMessage);
+
   return createdMessage;
 }
 

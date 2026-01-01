@@ -4,6 +4,7 @@ export interface IUser extends Document {
     email: string;
     password: string;
     profilePic?: string;
+    bio?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -24,9 +25,12 @@ const userSchema = new Schema<IUser>({
     },
     profilePic: {
         type: String,
-        default:
-            "https://ui-avatars.com/api/?background=random&name=User",
+    
     },
+    bio:{
+        type:String,
+        default: "Hey there! I am using WhatsApp.",
+    }
 },
     {timestamps:true},
 

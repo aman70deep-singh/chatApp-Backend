@@ -15,7 +15,7 @@ export const createUserHandler = async (req: Request, res: Response) => {
         message: validatedData.error.issues?.[0]?.message || "Invalid input",
       });
     }
-    const user = await authService.createUser(validatedData.data,req.file);
+    const user = await authService.createUser(validatedData.data, req.file);
     res.status(201).json({
       message: "User created successfully",
       user: user,
@@ -38,7 +38,7 @@ export const loginUserHandler = async (req: Request, res: Response) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
-      sameSite: "none",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -100,7 +100,7 @@ export const uploadProfilePicController = async (req: any, res: Response) => {
       });
     }
 
-    const profilePic = await authService.uploadUserProfilePicService(
+    const user = await authService.uploadUserProfilePicService(
       userId,
       req.file
     );
@@ -108,7 +108,7 @@ export const uploadProfilePicController = async (req: any, res: Response) => {
     return res.status(200).json({
       success: true,
       message: "Profile picture updated",
-      profilePic,
+      user,
     });
   } catch (error: any) {
     return res.status(500).json({
