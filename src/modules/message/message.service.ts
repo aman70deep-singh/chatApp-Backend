@@ -2,10 +2,19 @@ import chatModel from "../../models/chat.model";
 import messageModel from "../../models/message.model";
 import { getIO } from "../../socket/socket";
 export async function sendMessage(senderId: string, data: any) {
+  const chat = await chatModel.findById(data.chatId);
+  if (!chat) {
+    throw new Error("Chat is not found");
+  }
+  const receiverId = chat.userIds.find(
+    (u: any) => u.toString() !== senderId.toString()
+  );
+
   let createdMessage = await messageModel.create({
     sender: senderId,
     content: data.content,
     chatId: data.chatId,
+    receiver: receiverId as any,
   });
 
   createdMessage = await createdMessage.populate(

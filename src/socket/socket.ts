@@ -10,7 +10,7 @@ export const initSocket = (httpServer: any) => {
       methods: ["GET", "POST"],
     },
   });
-
+  let onlineUsers: Array<string> = [];
   io.on("connection", (socket) => {
     console.log("New user connected:", socket.id);
 
@@ -22,7 +22,12 @@ export const initSocket = (httpServer: any) => {
 
     socket.on("join-chat", (chatId) => {
       socket.join(chatId);
-      console.log("User joined chat:", chatId);
+      console.log("join-chat:", chatId, "socket:", socket.id);
+    });
+
+    socket.on("leave-chat", (chatId) => {
+      socket.leave(chatId);
+      console.log("leave-chat:", chatId, "socket:", socket.id);
     });
 
     socket.on("typing", (chatId) => {
@@ -33,22 +38,8 @@ export const initSocket = (httpServer: any) => {
       socket.to(chatId).emit("stop-typing");
     });
 
-    socket.on("message-delivered", async (chatId) => {
-      await messageModel.updateMany(
-        { chatId, status: "sent" },
-        { status: "delivered" }
-      );
-      socket.to(chatId).emit("message-status-updated");
-    });
-    socket.on("message-seen", async (chatId) => {
-      await messageModel.updateMany(
-        { chatId, status: "delivered" },
-        { status: "seen" }
-      );
-      socket.to(chatId).emit("message-status-updated");
-    });
-
-    socket.on("send-message", (message) => {
+    socket.on("send-message", async (message) => {
+      const receiverId = message.receiver.toString();
       const chat = message.chatId;
       if (!chat) {
         console.log(" Chat not found in message");
@@ -56,10 +47,64 @@ export const initSocket = (httpServer: any) => {
       }
 
       socket.to(chat._id).emit("receive-message", message);
+
+      if (onlineUsers.includes(receiverId)) {
+        await messageModel.findByIdAndUpdate(message._id, {
+          status: "delivered",
+        });
+
+        io.to(message.sender._id.toString()).emit("message-status-updated", {
+          messageId: message._id,
+          status: "delivered",
+        });
+      }
+    });
+
+    socket.on("chat-opened", async ({ chatId, userId }) => {
+
+      await messageModel.updateMany(
+        {
+          chatId,
+          receiver: { $ne: userId },
+          status: { $ne: "seen" },
+        },
+        { status: "seen" }
+      );
+
+
+      io.to(chatId).emit("message-seen", { chatId });
+    });
+
+    socket.on("user-login", async (userId) => {
+
+      (socket as any).userId = userId;
+      if (!onlineUsers.includes(userId)) {
+        onlineUsers.push(userId);
+      }
+      io.emit("online-users", onlineUsers);
+      const pendingMessages = await messageModel.find({
+        receiver: userId,
+        status: "sent",
+      });
+      if (!pendingMessages) return;
+
+      await messageModel.updateMany(
+        { receiver: userId, status: "sent" },
+        { status: "delivered" }
+      );
+      pendingMessages.forEach((msg) => {
+        io.to(msg.sender.toString()).emit("message-status-updated", {
+          messageId: msg._id,
+          status: "delivered",
+        });
+      });
     });
 
     socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
+      if ((socket as any).userId) {
+        onlineUsers = onlineUsers.filter((id) => id !== (socket as any).userId);
+        io.emit("online-users", onlineUsers);
+      }
     });
   });
 
