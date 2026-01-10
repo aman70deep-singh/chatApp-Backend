@@ -1,7 +1,8 @@
+import cloudinary from "../../config/cloudinary";
 import chatModel from "../../models/chat.model";
 import messageModel from "../../models/message.model";
 import { getIO } from "../../socket/socket";
-export async function sendMessage(senderId: string, data: any) {
+export async function sendMessage(senderId: string, data: any, file?: any) {
   const chat = await chatModel.findById(data.chatId);
   if (!chat) {
     throw new Error("Chat is not found");
@@ -10,12 +11,26 @@ export async function sendMessage(senderId: string, data: any) {
     (u: any) => u.toString() !== senderId.toString()
   );
 
-  let createdMessage = await messageModel.create({
+  let messagePayload: any = {
     sender: senderId,
-    content: data.content,
     chatId: data.chatId,
     receiver: receiverId as any,
-  });
+    type: "text",
+    content: data.content
+  }
+  if (file) {
+    const imageUrl = await uploadImage(file);
+    messagePayload = {
+      ...messagePayload,
+      type: "image",
+      imageUrl,
+      content: "image"
+    }
+  }
+
+  let createdMessage = await new messageModel(
+    messagePayload
+  ).save();
 
   createdMessage = await createdMessage.populate(
     "sender",
@@ -43,4 +58,18 @@ export async function getMessages(chatId: string) {
     .find({ chatId: chatId })
     .populate("sender", "name  profilePic")
     .sort({ createdAt: 1 });
+}
+
+export async function uploadImage(file: any) {
+  try {
+    const result = await cloudinary.uploader.upload(
+      `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+      {
+        folder: "uploaded-images",
+      }
+    );
+    return result.secure_url
+  } catch (error) {
+    throw error;
+  }
 }

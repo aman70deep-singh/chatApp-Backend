@@ -4,8 +4,10 @@ export interface IMessage extends Document {
   sender: mongoose.Types.ObjectId;
   content: string;
   chatId: mongoose.Types.ObjectId;
-  receiver:mongoose.Types.ObjectId;
+  receiver: mongoose.Types.ObjectId;
   status: string;
+  type: string;
+  imageUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,7 +21,7 @@ const messageSchema = new mongoose.Schema<IMessage>(
     },
     content: {
       type: String,
-      required: true,
+
     },
     chatId: {
       type: mongoose.Types.ObjectId,
@@ -35,8 +37,17 @@ const messageSchema = new mongoose.Schema<IMessage>(
       type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    type: {
+      type: String,
+      enum: ["image", "text"],
+      default: "text",
+    },
+    imageUrl: {
+      type: String
     }
-    
+
+
   },
   { timestamps: true }
 );

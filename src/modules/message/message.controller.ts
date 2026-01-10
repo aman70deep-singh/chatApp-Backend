@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
-import { sendMessageValidationSchema } from "./message.validator";
+import { imageUploadSchema, sendMessageValidationSchema } from "./message.validator";
 import * as messageService from "./message.service";
 
 export const sendMessageHandler = async (req: Request, res: Response) => {
   try {
-    const validateData = sendMessageValidationSchema.parse(req.body);
+
+    const validateData = sendMessageValidationSchema.safeParse(req.body);
     const message = await messageService.sendMessage(
       (req as any).user.userId,
-      validateData
+      validateData.data,
+      req.file
     );
+
     res.status(201).json({
       message: "send message successfully",
       savedMessage: message,
@@ -37,3 +40,42 @@ export const getMessageHandler = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
+export const uploadImageHandler = async (req: any, res: Response) => {
+  try {
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "image is required",
+      });
+    }
+
+    const result = imageUploadSchema.safeParse(req.file);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error.issues[0]?.message || "Invalid file",
+      });
+    }
+
+    const uploadResult = await messageService.uploadImage(
+
+      req.file
+    );
+
+
+    return res.status(200).json({
+      success: true,
+      message: "image upload successfully",
+      uploadResult,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Upload failed",
+    });
+  }
+};
+

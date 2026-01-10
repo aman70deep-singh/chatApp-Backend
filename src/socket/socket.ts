@@ -65,7 +65,7 @@ export const initSocket = (httpServer: any) => {
       await messageModel.updateMany(
         {
           chatId,
-          receiver: { $ne: userId },
+          receiver: userId,
           status: { $ne: "seen" },
         },
         { status: "seen" }
