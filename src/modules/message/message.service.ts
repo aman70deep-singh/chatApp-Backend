@@ -1,9 +1,9 @@
 import cloudinary from "../../config/cloudinary";
-import chatModel from "../../models/chat.model";
-import messageModel from "../../models/message.model";
+import ChatModel from "../../models/chat.model";
+import MessageModel from "../../models/message.model";
 import { getIO } from "../../socket/socket";
 export async function sendMessage(senderId: string, data: any, file?: any) {
-  const chat = await chatModel.findById(data.chatId);
+  const chat = await ChatModel.findById(data.chatId);
   if (!chat) {
     throw new Error("Chat is not found");
   }
@@ -28,7 +28,7 @@ export async function sendMessage(senderId: string, data: any, file?: any) {
     }
   }
 
-  let createdMessage = await new messageModel(
+  let createdMessage = await new MessageModel(
     messagePayload
   ).save();
 
@@ -44,7 +44,7 @@ export async function sendMessage(senderId: string, data: any, file?: any) {
     },
   });
 
-  await chatModel.findByIdAndUpdate(data.chatId, {
+  await ChatModel.findByIdAndUpdate(data.chatId, {
     latestMessage: createdMessage._id,
   });
   const io = getIO();
@@ -54,7 +54,7 @@ export async function sendMessage(senderId: string, data: any, file?: any) {
 }
 
 export async function getMessages(chatId: string) {
-  return messageModel
+  return MessageModel
     .find({ chatId: chatId })
     .populate("sender", "name  profilePic")
     .sort({ createdAt: 1 });

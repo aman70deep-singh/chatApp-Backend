@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import messageModel from "../models/message.model";
+import MessageModel from "../models/message.model";
 
 let io: Server;
 
@@ -49,7 +49,7 @@ export const initSocket = (httpServer: any) => {
       socket.to(chat._id).emit("receive-message", message);
 
       if (onlineUsers.includes(receiverId)) {
-        await messageModel.findByIdAndUpdate(message._id, {
+        await MessageModel.findByIdAndUpdate(message._id, {
           status: "delivered",
         });
 
@@ -60,9 +60,11 @@ export const initSocket = (httpServer: any) => {
       }
     });
 
-    socket.on("chat-opened", async ({ chatId, userId }) => {
+    socket.on("chat-opened", async ({ chatId }) => {
+      const userId = (socket as any).userId;
+      if (!userId) return;
 
-      await messageModel.updateMany(
+      await MessageModel.updateMany(
         {
           chatId,
           receiver: userId,
@@ -82,13 +84,13 @@ export const initSocket = (httpServer: any) => {
         onlineUsers.push(userId);
       }
       io.emit("online-users", onlineUsers);
-      const pendingMessages = await messageModel.find({
+      const pendingMessages = await MessageModel.find({
         receiver: userId,
         status: "sent",
       });
       if (!pendingMessages) return;
 
-      await messageModel.updateMany(
+      await MessageModel.updateMany(
         { receiver: userId, status: "sent" },
         { status: "delivered" }
       );
