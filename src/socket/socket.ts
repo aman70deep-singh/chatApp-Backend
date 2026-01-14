@@ -47,6 +47,11 @@ export const initSocket = (httpServer: any) => {
       }
 
       socket.to(chat._id).emit("receive-message", message);
+      io.to(receiverId).emit("unread-count-updated", {
+        chatId: chat._id,
+        message
+      });
+
 
       if (onlineUsers.includes(receiverId)) {
         await MessageModel.findByIdAndUpdate(message._id, {
@@ -74,7 +79,9 @@ export const initSocket = (httpServer: any) => {
       );
 
 
-      io.to(chatId).emit("message-seen", { chatId });
+      io.to(chatId).emit("message-seen-ticks", { chatId });
+
+      io.to(userId).emit("reset-unread-count", { chatId });
     });
 
     socket.on("user-login", async (userId) => {

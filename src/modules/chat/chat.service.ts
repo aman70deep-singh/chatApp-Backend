@@ -20,12 +20,43 @@ export async function createChat(loggedInUserId: string, data: any) {
 
 }
 
+import mongoose from "mongoose";
+
 export async function getMyChats(loggedInUserId: string) {
     try {
-        const myChats = await ChatModel.find({
+        const chats = await ChatModel.find({
             userIds: loggedInUserId
-        }).populate("userIds", "name email profilePic").populate("latestMessage").sort({ updatedAt: -1 });
-        return myChats;
+        })
+            .populate("userIds", "name email profilePic")
+            .populate("latestMessage")
+            .sort({ updatedAt: -1 });
+
+        const unreadCounts = await MessageModel.aggregate([
+            {
+                $match: {
+                    receiver: new mongoose.Types.ObjectId(loggedInUserId),
+                    status: { $ne: "seen" },
+                },
+            },
+            {
+                $group: {
+                    _id: "$chatId",
+                    unreadCount: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const unreadMap: Record<string, number> = {};
+        unreadCounts.forEach((item) => {
+            unreadMap[item._id.toString()] = item.unreadCount;
+        });
+
+        const chatsWithUnread = chats.map((chat: any) => ({
+            ...chat.toObject(),
+            unreadCount: unreadMap[chat._id.toString()] || 0,
+        }));
+
+        return chatsWithUnread;
     } catch (error) {
         throw error;
     }
