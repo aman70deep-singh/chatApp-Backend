@@ -1,5 +1,7 @@
 import ChatModel from "../../models/chat.model";
 import MessageModel from "../../models/message.model";
+import mongoose from "mongoose";
+
 export async function createChat(loggedInUserId: string, data: any) {
     try {
         const checkExistingChat = await ChatModel.findOne({
@@ -20,7 +22,6 @@ export async function createChat(loggedInUserId: string, data: any) {
 
 }
 
-import mongoose from "mongoose";
 
 export async function getMyChats(loggedInUserId: string) {
     try {
