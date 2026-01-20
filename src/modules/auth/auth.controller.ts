@@ -73,7 +73,67 @@ export const getRefreshTokenHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadProfilePicController = async (req: any, res: Response) => {
+export const forgotPasswordHandler = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({
+        message: "Email is required"
+      })
+    }
+    await authService.forgotPassword(email);
+    res.status(200).json({
+      message: "OTP sent to email successfully"
+    })
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    })
+  }
+}
+
+export const verifyOtpHandler = async (req: Request, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      res.status(400).json({
+        message: "Email and otp is required"
+      })
+    }
+    await authService.verifyOtp(email, otp);
+    res.status(200).json({
+      message: "OTP verified successfully"
+    })
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message
+    })
+  }
+}
+
+export const resetPasswordHandler =  async (req:Request,res:Response)=>{
+  try {
+    const {email,newPassword} = req.body;
+    if(!email || !newPassword){
+      res.status(400).json({
+        message:"Email and new password is required"
+      })
+    }
+    await authService.resetPassword(email,newPassword);
+    res.status(200).json({
+      message:"Password updated successfully"
+    })
+  } catch (error:any) {
+    res.status(400).json({
+      message:error.message
+    })
+  }
+}
+
+
+export const uploadProfilePicHandler = async (req: any, res: Response) => {
   try {
     const userId = req.user?.userId;
 

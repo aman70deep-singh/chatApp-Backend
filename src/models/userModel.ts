@@ -5,8 +5,8 @@ export interface IUser extends Document {
   password: string;
   profilePic?: string;
   bio?: string;
-  isOnline: boolean;
-  lastSeen: Date;
+  resetOTP: string,
+  otpExpiry: Date,
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,12 +33,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: "Hey there! I am using WhatsApp.",
     },
-    isOnline: {
-      type: Boolean,
-      default: false,
+    resetOTP: {
+      type: String,
     },
-
-    lastSeen: {
+    otpExpiry: {
       type: Date,
     },
   },

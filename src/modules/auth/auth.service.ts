@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import UserModel from "../../models/userModel";
 import bcrypt from "bcrypt";
 import cloudinary from "../../config/cloudinary";
+import { generateOtp, sendOtpToEmail } from "../../utils";
 
 export async function createUser(userData: any, file: any) {
   const checkExistingUser = await UserModel.findOne({
@@ -86,6 +87,42 @@ export async function getRefreshToken(refreshToken: string) {
   } catch (error) {
     throw new Error("Invalid or expired refresh token");
   }
+}
+
+export async function forgotPassword(email: string) {
+  try {
+    const user = await UserModel.findOne({
+      email: email,
+    })
+    if (!user) {
+      throw new Error("User does not exist");
+    }
+    const otp = generateOtp();
+    user.resetOTP = otp;
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+    await sendOtpToEmail(email, otp);
+  }
+  catch (error) {
+    throw error;
+  }
+}
+
+export async function verifyOtp(email: string, otp: string) {
+  const user = await UserModel.findOne({ email: email });
+  if (!user || user.resetOTP !== otp || user.otpExpiry < new Date()) {
+    throw new Error("Invalid or expired OTP");
+  }
+  return true;
+}
+
+export async function resetPassword(email: string, newPassword: string) {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const user = await UserModel.updateOne({ email: email },
+    {
+      $set: { password: hashedPassword },
+      $unset: { resetOTP: "", otpExpiry: "" }
+    })
 }
 
 export async function uploadUserProfilePicService(userId: string, file: any) {
