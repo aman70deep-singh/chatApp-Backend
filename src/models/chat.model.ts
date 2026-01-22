@@ -1,7 +1,5 @@
 import mongoose from 'mongoose'
-
-
-
+import { Document } from 'mongoose';
 export interface IChat extends Document {
     userIds: mongoose.Types.ObjectId[];
     latestMessage?: mongoose.Types.ObjectId;
@@ -23,5 +21,6 @@ const chatSchema = new mongoose.Schema<IChat>({
 },
     { timestamps: true },
 )
+chatSchema.index({ userIds: 1, updatedAt: -1 });
 const Chat = mongoose.model<IChat>("Chat", chatSchema);
 export default Chat;
