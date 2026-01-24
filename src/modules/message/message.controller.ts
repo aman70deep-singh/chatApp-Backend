@@ -61,41 +61,4 @@ export const getMessageHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadImageHandler = async (req: any, res: Response) => {
-  try {
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "image is required",
-      });
-    }
-
-    const result = imageUploadSchema.safeParse(req.file);
-
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        message: result.error.issues[0]?.message || "Invalid file",
-      });
-    }
-
-    const uploadResult = await messageService.uploadImage(
-
-      req.file
-    );
-
-
-    return res.status(200).json({
-      success: true,
-      message: "image upload successfully",
-      uploadResult,
-    });
-  } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Upload failed",
-    });
-  }
-};
 

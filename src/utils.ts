@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import cloudinary from './config/cloudinary';
 
 export const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -21,4 +22,18 @@ export const sendOtpToEmail = async (email: string, otp: string) => {
         text: `Your OTP for password reset is ${otp}. It is valid for 10 minutes.`
     })
     return mail;
+}
+
+export async function uploadImage(file: any) {
+    try {
+        const result = await cloudinary.uploader.upload(
+            `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
+            {
+                folder: "uploaded-images",
+            }
+        );
+        return result.secure_url
+    } catch (error) {
+        throw error;
+    }
 }

@@ -1,9 +1,9 @@
-import cloudinary from "../../config/cloudinary";
 import ChatModel from "../../models/chat.model";
 import MessageModel from "../../models/message.model";
 import { getIO } from "../../socket/socket";
 import { Types } from "mongoose";
 import redisClient from "../../redis";
+import { uploadImage } from "../../utils";
 export async function sendMessage(senderId: string, data: any, file?: any) {
   const chat = await ChatModel.findById(data.chatId);
   if (!chat) {
@@ -109,16 +109,3 @@ export async function getMessages(
   return response;
 }
 
-export async function uploadImage(file: any) {
-  try {
-    const result = await cloudinary.uploader.upload(
-      `data:${file.mimetype};base64,${file.buffer.toString("base64")}`,
-      {
-        folder: "uploaded-images",
-      }
-    );
-    return result.secure_url
-  } catch (error) {
-    throw error;
-  }
-}
