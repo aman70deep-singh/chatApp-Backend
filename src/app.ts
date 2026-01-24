@@ -5,6 +5,8 @@ import authRoutes from "./modules/auth/auth.routes";
 import userRoutes from "./modules/users/user.routes";
 import chatRoutes from "./modules/chat/chat.routes";
 import messageRoutes from "./modules/message/message.routes";
+import { connectRedis } from './redis'
+connectRedis()
 const app = express();
 app.use(cookieParser());
 app.use(

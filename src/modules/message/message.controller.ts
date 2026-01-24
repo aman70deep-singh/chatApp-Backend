@@ -27,17 +27,37 @@ export const sendMessageHandler = async (req: Request, res: Response) => {
 export const getMessageHandler = async (req: Request, res: Response) => {
   try {
     const { chatId } = req.params;
+    const { cursor, limit } = req.query;
+
     if (!chatId) {
       return res.status(400).json({
-        message: "chatId is required",
         success: false,
+        message: "chatId is required",
       });
     }
-    const messages = await messageService.getMessages(chatId);
 
-    return res.status(200).json({ success: true, data: messages });
+    const result = await messageService.getMessages(
+      chatId,
+      cursor as string | undefined,
+      limit ? Number(limit) : 20
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        messages: result.messages,
+        nextCursor: result.nextCursor,
+        hasNextPage: result.hasNextPage,
+      },
+    });
   } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message });
+    console.error("Get Messages Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch messages",
+      error: error.message,
+    });
   }
 };
 
