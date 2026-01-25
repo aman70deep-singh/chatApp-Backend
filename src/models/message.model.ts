@@ -8,6 +8,8 @@ export interface IMessage extends Document {
   status: string;
   type: string;
   imageUrl: string;
+  isDeleted: boolean; 
+  deletedBy: mongoose.Types.ObjectId[]; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,9 +47,17 @@ const messageSchema = new mongoose.Schema<IMessage>(
     },
     imageUrl: {
       type: String
-    }
-
-
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
+    deletedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

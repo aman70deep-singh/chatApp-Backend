@@ -28,6 +28,7 @@ export const getMessageHandler = async (req: Request, res: Response) => {
   try {
     const { chatId } = req.params;
     const { cursor, limit } = req.query;
+    const loggedInUser = (req as any).user.userId;
 
     if (!chatId) {
       return res.status(400).json({
@@ -38,8 +39,9 @@ export const getMessageHandler = async (req: Request, res: Response) => {
 
     const result = await messageService.getMessages(
       chatId,
+      limit ? Number(limit) : 20,
+      loggedInUser,
       cursor as string | undefined,
-      limit ? Number(limit) : 20
     );
 
     return res.status(200).json({
@@ -57,6 +59,33 @@ export const getMessageHandler = async (req: Request, res: Response) => {
       success: false,
       message: "Failed to fetch messages",
       error: error.message,
+    });
+  }
+};
+
+export const deleteMessageHandler = async (req: Request, res: Response) => {
+  try {
+    const { messageId } = req.params;
+    const { type } = req.body; 
+    const userId = (req as any).user.userId;
+
+    if (!messageId || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "messageId and type are required",
+      });
+    }
+
+    await messageService.deleteMessage(messageId, userId, type);
+
+    return res.status(200).json({
+      success: true,
+      message: `Message deleted for ${type === 'me' ? 'you' : 'everyone'} successfully`,
+    });
+  } catch (error: any) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to delete message",
     });
   }
 };
