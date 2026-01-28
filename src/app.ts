@@ -11,11 +11,14 @@ const app = express();
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://your-frontend-url.vercel.app",
     credentials: true,
   })
 );
 app.use(express.json());
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/chat", chatRoutes);
