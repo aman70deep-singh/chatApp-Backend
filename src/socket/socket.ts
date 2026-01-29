@@ -6,7 +6,7 @@ let io: Server;
 export const initSocket = (httpServer: any) => {
   io = new Server(httpServer, {
     cors: {
-      origin: "https://your-frontend-url.vercel.app",
+      origin: process.env.CLIENT_URL || "http://localhost:3000",
       methods: ["GET", "POST"],
     },
   });
