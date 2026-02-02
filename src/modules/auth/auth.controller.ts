@@ -77,7 +77,7 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Email is required"
       })
     }
@@ -97,7 +97,7 @@ export const verifyOtpHandler = async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Email and otp is required"
       })
     }
@@ -113,21 +113,21 @@ export const verifyOtpHandler = async (req: Request, res: Response) => {
   }
 }
 
-export const resetPasswordHandler =  async (req:Request,res:Response)=>{
+export const resetPasswordHandler = async (req: Request, res: Response) => {
   try {
-    const {email,newPassword} = req.body;
-    if(!email || !newPassword){
-      res.status(400).json({
-        message:"Email and new password is required"
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        message: "Email and new password is required"
       })
     }
-    await authService.resetPassword(email,newPassword);
+    await authService.resetPassword(email, newPassword);
     res.status(200).json({
-      message:"Password updated successfully"
+      message: "Password updated successfully"
     })
-  } catch (error:any) {
+  } catch (error: any) {
     res.status(400).json({
-      message:error.message
+      message: error.message
     })
   }
 }
