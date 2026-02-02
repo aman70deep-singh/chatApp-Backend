@@ -101,14 +101,7 @@ export async function forgotPassword(email: string) {
     user.resetOTP = otp;
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
-    try {
-      await sendOtpToEmail(email, otp);
-    } catch (emailError: any) {
-      console.error("Email sending failed:", emailError.message);
-      // We still return success or a specific message because the OTP is saved in DB
-      // Alternatively, throw error if email is CRITICAL
-      throw new Error("Failed to send email. Please try again later.");
-    }
+    await sendOtpToEmail(email, otp);
   }
   catch (error) {
     throw error;
