@@ -6,7 +6,7 @@ A high-performance, real-time messaging backend built with **TypeScript**, **Nod
 
 ## 🛠 Tech Stack
 
-- **Languge:** TypeScript
+- **Language:** TypeScript
 - **Runtime:** Node.js
 - **Framework:** Express.js (v5.1.0)
 - **Database:** MongoDB (using Mongoose)
