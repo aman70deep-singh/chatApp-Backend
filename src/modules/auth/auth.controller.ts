@@ -77,7 +77,7 @@ export const forgotPasswordHandler = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Email is required"
       })
     }
@@ -97,7 +97,7 @@ export const verifyOtpHandler = async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Email and otp is required"
       })
     }
